@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  midb:
+    image: postgres:9.6
+    environment:
+      POSTGRES_PASSWORD: "p0stgr3s"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  miapp:
+    image: tomcat:8-jdk8
+    environment:
+      MAGICINFO_PREMIUM_HOME: "/magicinfo"
+      RMSERVER: "/magicinfo/rmserver"
+    volumes:
+      - web:/usr/local/tomcat
+      - app:/magicinfo
+      - type: bind
+        source: /usr/sbin/ifconfig
+        target: /usr/bin/ifconfig
+        read_only: true
+    ports:
+      - "7001:7001"
+volumes:
+  data:
+  app:
+  web:
