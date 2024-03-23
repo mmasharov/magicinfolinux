@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+	<!-- The front controller of the Spring MVC Web application, responsible 
+		for handling all application requests -->
+
+	<filter>
+		<filter-name>CharacterEncoding</filter-name>
+		<filter-class>com.samsung.common.config.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>CharacterEncoding</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+    
+    <!--  Filters securing headers -->
+    <filter>
+        <filter-name>SecurityHeaderFilter</filter-name>
+        <filter-class>com.samsung.magicinfo.mvc.filters.SecurityHeaderFilter</filter-class>
+        <init-param>
+            <param-name>mode</param-name>
+            <param-value>SAMEORIGIN</param-value>
+        </init-param>
+    </filter>
+    
+    <!-- use the SameOrigin version to allow your application to frame, but nobody else -->
+    <filter-mapping> 
+        <filter-name>SecurityHeaderFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+		<filter-name>deviceResolverRequestFilter</filter-name>
+		<filter-class>org.springframework.mobile.device.DeviceResolverRequestFilter</filter-class>
+	</filter>
+    
+	<!-- filter>
+        <filter-name>etagFilter</filter-name>
+	    <filter-class>org.springframework.web.filter.ShallowEtagHeaderFilter</filter-class>
+	</filter>
+	<filter-mapping>
+        <filter-name>etagFilter</filter-name>
+        <url-pattern>/js/*</url-pattern>
+	</filter-mapping-->
+    
+    <!-- End of Filters securing against Click Jacking - XFS -->
+     <servlet>
+      <servlet-name>jersey</servlet-name>
+      <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+      <init-param>
+        <param-name>jersey.config.server.provider.packages</param-name>
+        <param-value>
+	    io.swagger.jaxrs.listing,
+	    com.samsung.magicinfo.cms.controller,
+            com.samsung.magicinfo.dms.controller,
+            com.samsung.magicinfo.rms.controller,
+            com.samsung.magicinfo.ums.controller,
+	    com.samsung.magicinfo.ems.controller
+        </param-value>
+      </init-param>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>Jersey2Config</servlet-name>
+        <servlet-class>io.swagger.jersey.config.JerseyJaxrsConfig</servlet-class>
+        <init-param>
+            <param-name>api.version</param-name>
+            <param-value>1.0.0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>swagger.api.basepath</param-name>
+            <param-value>/swagger/api</param-value> 
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>jersey</servlet-name>
+        <url-pattern>/swagger/api/*</url-pattern> 
+    </servlet-mapping>
+    
+	<servlet>
+		<servlet-name>ServiceContextRecovery</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.servicemanager.ServiceContextRecoveryServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet>
+		<servlet-name>DownloadSync</servlet-name>
+		<servlet-class>org.apache.ftpserver.main.DownloadSyncServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DownloadSync</servlet-name>
+		<url-pattern>/servlet/DownloadSync</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>DownloadStatus</servlet-name>
+		<servlet-class>org.apache.ftpserver.main.DownloadStatusServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DownloadStatus</servlet-name>
+		<url-pattern>/servlet/DownloadStatus</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>LicenseLoading</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.LicenseLoadingServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet>
+		<servlet-name>QuartzInitializer</servlet-name>
+		<servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class>
+		<init-param>
+			<param-name>shutdown-on-unload</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</servlet>
+
+    <!-- Program Temp data cleanup Servlet -->
+    <servlet>
+        <servlet-name>CleanUp</servlet-name>
+        <servlet-class>
+            com.samsung.magicinfo.framework.scheduler.manager.CleanUpServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    
+    <!-- Content and Playlist Lock information cleanup Servlet -->
+    <servlet>
+        <servlet-name>CleanUpContentLock</servlet-name>
+        <servlet-class>
+            com.samsung.magicinfo.framework.content.manager.CleanUpServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+	<servlet>
+		<servlet-name>WSRMReverse</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.client.WSReverseClientServlet</servlet-class>
+		<init-param>
+			<param-name>CONF_PATH</param-name>
+			<param-value>/WEB-INF/conf/</param-value>
+		</init-param>
+		<init-param>
+			<param-name>CLIENT_DESCRIPTOR</param-name>
+			<param-value>samsung-wsf-client-descriptor.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WSRMReverse</servlet-name>
+		<url-pattern>/WSRMReverse</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>WSRMService</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.service.WSServlet</servlet-class>
+		<init-param>
+			<param-name>CONF_PATH</param-name>
+			<param-value>/WEB-INF/conf/</param-value>
+		</init-param>
+		<init-param>
+			<param-name>SERVICE_DESCRIPTOR</param-name>
+			<param-value>
+				samsung-wsf-service-descriptor.xml
+			</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WSRMService</servlet-name>
+		<url-pattern>/WSRMService</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>KeyExchange</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.security.http.KeyExchangeServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>KeyExchange</servlet-name>
+		<url-pattern>/KeyExchange</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>FtpServer</servlet-name>
+		<servlet-class>org.apache.ftpserver.main.StartUpServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<!-- 120530 heejeong  TempContentProcess -->
+	<servlet>
+		<servlet-name>TempContentProcess</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.TempContentProcessServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	
+	<!-- 120531 heejeong  SessionProcessServlet -->
+	<servlet>
+		<servlet-name>SessionProcess</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.SessionProcessServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<!-- 120604 heejeong  DataLinkOpenApiServlet -->
+	<servlet>
+		<servlet-name>DataLinkOpenApi</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.DataLinkOpenApiServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+		<servlet-mapping>
+		<servlet-name>DataLinkOpenApi</servlet-name>
+		<url-pattern>/reqDlkData.do</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobScheduling</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.JobSchedulingServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+
+	<!-- Map requests to the DispatcherServlet for handling -->
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>/spring</taglib-uri>
+			<taglib-location>/WEB-INF/tld/spring.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/tld/c.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fmt.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+
+	<!-- FFmpeg File Download Servlet -->
+	<servlet>
+		<servlet-name>FFmpegDownload</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.FFmpegDownloadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FFmpegDownload</servlet-name>
+		<url-pattern>/servlet/FFmpegDownload</url-pattern>
+	</servlet-mapping>
+
+	<!-- Get File Info Servlet -->
+	<servlet>
+		<servlet-name>FileInfo</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.FileInfoServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileInfo</servlet-name>
+		<url-pattern>/servlet/FileInfo</url-pattern>
+	</servlet-mapping>
+
+	<!-- Get Content Info Servlet -->
+	<servlet>
+		<servlet-name>ContentInfo</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.ContentInfoServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentInfo</servlet-name>
+		<url-pattern>/servlet/ContentInfo</url-pattern>
+	</servlet-mapping>
+
+	<!-- Get Content Group Info Servlet -->
+	<servlet>
+		<servlet-name>ContentGroupInfo</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.ContentGroupInfoServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentGroupInfo</servlet-name>
+		<url-pattern>/servlet/ContentGroupInfo</url-pattern>
+	</servlet-mapping>
+
+	<!-- Cid Mapping Servlet -->
+	<servlet>
+		<servlet-name>CidMapping</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.CidMappingServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CidMapping</servlet-name>
+		<url-pattern>/servlet/CidMapping</url-pattern>
+	</servlet-mapping>
+
+	<!-- Meta File Upload Servlet -->
+	<servlet>
+		<servlet-name>FtpMetaUploader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.FtpMetaUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FtpMetaUploader</servlet-name>
+		<url-pattern>/servlet/FtpMetaUploader</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Content File Upload Servlet (web based)-->
+	<servlet>
+		<servlet-name>ContentFileUpload</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.ContentFileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentFileUpload</servlet-name>
+		<url-pattern>/servlet/ContentFileUpload</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Content File Download Servlet (web based)-->
+	<servlet>
+		<servlet-name>ContentFileDownload</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.http.ContentFileDownloadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentFileDownload</servlet-name>
+		<url-pattern>/servlet/ContentFileDownload</url-pattern>
+	</servlet-mapping>
+
+
+	<!-- Hash Refresh Servlet(Only LFD file) -->
+	<servlet>
+		<servlet-name>FileHashRefresh</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.FileHashRefreshServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileHashRefresh</servlet-name>
+		<url-pattern>/servlet/FileHashRefresh</url-pattern>
+	</servlet-mapping>
+
+
+	<!-- File Upload Servlet -->
+	<servlet>
+		<servlet-name>FileUploader</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.FileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileUploader</servlet-name>
+		<url-pattern>/servlet/FileUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>CsvFileUploader</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.CsvFileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CsvFileUploader</servlet-name>
+		<url-pattern>/servlet/CsvFileUploader</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Upload Result Receive Servlet -->
+	<servlet>
+		<servlet-name>JobState</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.JobStateServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobState</servlet-name>
+		<url-pattern>/servlet/JobState</url-pattern>
+	</servlet-mapping>
+
+	<!-- Content Download Servlets -->
+
+	<!-- Folder List Servlet -->
+	<servlet>
+		<servlet-name>FolderList</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.FolderListServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FolderList</servlet-name>
+		<url-pattern>/servlet/FolderList</url-pattern>
+	</servlet-mapping>
+
+	<!-- Folder List Servlet -->
+	<servlet>
+		<servlet-name>OrganList</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.OrganListServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>OrganList</servlet-name>
+		<url-pattern>/servlet/OrganList</url-pattern>
+	</servlet-mapping>
+
+	<!-- Device List Servlet -->
+	<servlet>
+		<servlet-name>DeviceList</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.DeviceListServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DeviceList</servlet-name>
+		<url-pattern>/servlet/DeviceList</url-pattern>
+	</servlet-mapping>
+
+	<!-- Content List Servlet -->
+	<servlet>
+		<servlet-name>ContentList</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.ContentListServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentList</servlet-name>
+		<url-pattern>/servlet/ContentList</url-pattern>
+	</servlet-mapping>
+
+	<!-- File Download Servlet -->
+	<servlet>
+		<servlet-name>FileLoader</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.FileLoaderServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileLoader</servlet-name>
+		<url-pattern>/servlet/FileLoader</url-pattern>
+	</servlet-mapping>
+	
+	<!-- File Download Servlet For GET-->
+	<servlet>
+		<servlet-name>GetFileLoader</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.FileDownloadForGetServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GetFileLoader</servlet-name>
+		<url-pattern>/servlet/GetFileLoader</url-pattern>
+	</servlet-mapping>
+
+    <!-- JNLP Resources Download Servlet -->
+    <servlet>
+        <servlet-name>JnlpResourceDownloader</servlet-name>
+        <servlet-class>com.samsung.magicinfo.protocol.file.JnlpResourceDownloaderServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JnlpResourceDownloader</servlet-name>
+        <url-pattern>/uploader/*</url-pattern>
+    </servlet-mapping>
+	
+	<!-- Firmware update servlet -->
+	<servlet>
+		<servlet-name>SWUpdate</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.FileSWUpdateServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SWUpdate</servlet-name>
+		<url-pattern>/servlet/SWUpdate</url-pattern>
+	</servlet-mapping>
+
+	<!-- Content Upload Servlet -->
+	<servlet>
+		<servlet-name>ContentUpload</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.ContentUploaderTestServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ContentUpload</servlet-name>
+		<url-pattern>/servlet/ContentUpload</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobGetId</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.JobGetIdServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobGetId</servlet-name>
+		<url-pattern>/servlet/JobGetId</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobMetaUploader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobMetaUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobMetaUploader</servlet-name>
+		<url-pattern>/servlet/JobMetaUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobInformationUploader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobInformationUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobInformationUploader</servlet-name>
+		<url-pattern>/servlet/JobInformationUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobFileUploader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobFileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobFileUploader</servlet-name>
+		<url-pattern>/servlet/JobFileUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobResultFileUploader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobResultFileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobResultFileUploader</servlet-name>
+		<url-pattern>/servlet/JobResultFileUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobResultState</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobResultStateServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobResultState</servlet-name>
+		<url-pattern>/servlet/JobResultState</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobSearchId</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.JobSearchIdServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobSearchId</servlet-name>
+		<url-pattern>/servlet/JobSearchId</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobEdit</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.JobEditServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobEdit</servlet-name>
+		<url-pattern>/servlet/JobEdit</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>JobFileLoader</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.JobFileLoaderServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JobFileLoader</servlet-name>
+		<url-pattern>/servlet/JobFileLoader</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApplicationExit</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.protocol.file.ApplicationExitServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApplicationExit</servlet-name>
+		<url-pattern>/servlet/ApplicationExit</url-pattern>
+	</servlet-mapping>
+
+	<!-- Content Thumbnail View -->
+	<servlet>
+		<servlet-name>ContentThumbnail</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.newcontroller.content.ContentsThumbnailServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>	
+	<servlet-mapping>
+		<servlet-name>ContentThumbnail</servlet-name>
+		<url-pattern>/servlet/ContentThumbnail</url-pattern>
+	</servlet-mapping>
+	
+	<!-- FTP Downloader for DLK -->
+	<servlet>
+	  <servlet-name>FtpFileDownloadServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.file.FtpFileDownloadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>FtpFileDownloadServlet</servlet-name>
+	  <url-pattern>/servlet/FtpFileDownloadServlet</url-pattern>
+	</servlet-mapping>	
+	
+	<!-- CIFS Downloader for DLK -->
+	<servlet>
+	  <servlet-name>CifsFileDownloadServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.file.CifsFileDownloadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>CifsFileDownloadServlet</servlet-name>
+	  <url-pattern>/servlet/CifsFileDownloadServlet</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Diagnosis & Uploader Servlet -->
+	<servlet>
+	  <servlet-name>DiagnosisServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.http.DiagnosisServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>DiagnosisServlet</servlet-name>
+	  <url-pattern>/servlet/DiagnosisServlet</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Disaster Alert Servlet -->
+	<servlet>
+	  <servlet-name>DisasterAlertServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.http.DisasterAlertServlet</servlet-class>
+	   <!-- <property name="uploadDir" value="D:/test"/> -->
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>DisasterAlertServlet</servlet-name>
+	  <url-pattern>/servlet/DisasterAlertServlet</url-pattern>
+<!-- 	     <property name="uploadDir" value="D:/test"/> -->
+	</servlet-mapping>
+	
+	<!-- Device Loop Out Servlet -->
+	<servlet>
+	  <servlet-name>DeviceLoopOutServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.http.DeviceLoopOutServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>DeviceLoopOutServlet</servlet-name>
+	  <url-pattern>/servlet/DeviceLoopOutServlet</url-pattern>
+	</servlet-mapping>
+	
+	<!-- vwlLayout Servlet -->
+	<servlet>
+	  <servlet-name>vwlLayoutServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.http.vwlLayoutServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>vwlLayoutServlet</servlet-name>
+	  <url-pattern>/servlet/vwlLayoutServlet</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+	  <servlet-name>SBOXLayoutServlet</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.http.SBOXLayoutServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>SBOXLayoutServlet</servlet-name>
+	  <url-pattern>/servlet/SBOXLayoutServlet</url-pattern>
+	</servlet-mapping>
+	
+		<!-- Led Comm Servlet -->
+	<servlet>
+		<servlet-name>LedCommServlet</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.LedCommServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LedCommServlet</servlet-name>
+		<url-pattern>/servlet/LedCommServlet</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Sync Group Servlet -->
+	<servlet>
+		<servlet-name>SyncGroupServlet</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.http.SyncGroupServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SyncGroupServlet</servlet-name>
+		<url-pattern>/servlet/SyncGroupServlet</url-pattern>
+	</servlet-mapping>
+	 
+	<!-- Dwr Servlet -->
+	<servlet>
+		<servlet-name>dwr-invoker</servlet-name>
+		<servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
+		<init-param>
+			<param-name>debug</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>crossDomainSessionSecurity</param-name>
+			<param-value>false</param-value>
+		</init-param>		
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>dwr-invoker</servlet-name>
+		<url-pattern>/dwr/*</url-pattern>
+	</servlet-mapping>
+	
+	<!-- SWUpdateFileUpload Servelet -->
+	<servlet>
+	  <servlet-name>SWUpdateFileUploader</servlet-name>
+	  <servlet-class>com.samsung.magicinfo.protocol.file.SWUpdateFileUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	  <servlet-name>SWUpdateFileUploader</servlet-name>
+	  <url-pattern>/servlet/SWUpdateFileUploader</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Device Log Upload Servlet -->
+	<servlet>
+		<servlet-name>DeviceLogUploadServlet</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.DeviceLogUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DeviceLogUploadServlet</servlet-name>
+		<url-pattern>/servlet/DeviceLogUploadServlet</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Notification Attached File Download Servlet -->
+	<servlet>
+		<servlet-name>NotificationAttachedFileDownloadServlet</servlet-name>
+		<servlet-class>com.samsung.magicinfo.protocol.file.NotificationAttachedFileDownloadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>NotificationAttachedFileDownloadServlet</servlet-name>
+		<url-pattern>/servlet/NotificationAttachedFileDownloadServlet</url-pattern>
+	</servlet-mapping>
+	
+	
+	<!--  Open API -->
+	<servlet>
+		<servlet-name>web-openapi</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>
+          		WEB-INF/web-openapi-config.xml
+            </param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>web-openapi</servlet-name>
+		<url-pattern>/openapi/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>OpenApiPlugin</servlet-name>
+		<servlet-class>
+			com.samsung.magicinfo.openapi.web.OpenApiPlugin
+		</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<!--  Open API Scenario-->
+	<servlet>
+		<servlet-name>web-openapi-scenario</servlet-name>
+		<servlet-class>com.vaadin.server.VaadinServlet</servlet-class>
+		<init-param>
+			<param-name>UI</param-name>
+			<param-value>com.samsung.magicinfo.openapi.scenario.ui.MainScenarioWindowUI</param-value>
+		</init-param>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>web-openapi-scenario</servlet-name>
+		<url-pattern>/scenario/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>web-openapi-scenario</servlet-name>
+		<url-pattern>/VAADIN/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+    <servlet-name>jsp</servlet-name>
+    <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param> 
+        <param-name>mappedfile</param-name> 
+        <param-value>false</param-value> 
+    </init-param> 
+	</servlet>
+ 	<servlet>
+		<servlet-name>web-application</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/web-application-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>web-application</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping> 
+
+	<!-- Welcome file Servlet -->
+	<welcome-file-list>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+            classpath:context-infrastructure.xml
+            classpath:context-application.xml
+            classpath:context-domain.xml
+            classpath:context-interfaces.xml
+            WEB-INF/web-security-config.xml
+    	</param-value>
+	</context-param>
+	
+	<context-param>
+        <description>Vaadin production mode</description>
+        <param-name>productionMode</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    
+	<filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    
+    <!-- XSS validation filter -->
+    <filter>
+        <filter-name>XssValidationFilter</filter-name>
+        <filter-class>com.samsung.magicinfo.mvc.filters.XssValidationFilter</filter-class>
+        <init-param>
+            <param-name>commaSeparatedExcludedUrls</param-name>
+            <param-value>openapi,WSRMService,WSRMReverse,KeyExchange,reqDlkData.do,servlet,restapi</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>XssValidationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<listener>
+    	<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
+ 	</listener>
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>     <!-- enable http-only session cookie -->
+<!--             <secure>true</secure> -->  <!-- enable secure session cookie, https required -->
+        </cookie-config>
+    </session-config>
+    
+    <!-- Hiding stacktraces and messages for security reasons. -->
+    <!-- Error codes have to be listed separately unless Servlet-Api is 3.0 or higher -->
+    <error-page>
+        <error-code>400</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+     <error-page>
+        <error-code>403</error-code>
+        <location>/error/forbiddenPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>600</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>601</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>602</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>603</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>604</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>605</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>606</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>607</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>609</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>610</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page> 
+    <error-page>
+        <error-code>611</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error/errorPage.jsp</location>
+    </error-page>    
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <error-page>
+        <location>/error/errorPage.jsp</location>
+    </error-page>
+    <!-- Overrides the mime type -->
+    <mime-mapping>
+        <extension>js</extension>
+        <mime-type>application/javascript</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+    <extension>jnlp</extension>
+    <mime-type>application/x-java-jnlp-file</mime-type>
+  </mime-mapping>
+    
+
+</web-app>
